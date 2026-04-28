@@ -20,7 +20,7 @@ class Model(nn.Module):
         self.scaler = LLMQuantileScaler()
         
         # LLM Settings
-        self.model_name = getattr(configs, 'llm_model', 'gpt2')  # Use a small model as default
+        self.model_name = getattr(configs, 'llm_model', 'meta-llama/Llama-2-7b-hf')  # Use Llama as default
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         self.tokenizer = None

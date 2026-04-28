@@ -449,6 +449,54 @@ class MOMENTWrapper(BaseTSFMWrapper):
         return forecast
 
 
+
+class LLMTimeWrapper(BaseTSFMWrapper):
+    """
+    Wrapper for LLMTime.
+    
+    Notes:
+    - LLMTime is a zero-shot forecaster.
+    - It treats each channel independently by default.
+    """
+    def __init__(
+        self,
+        seq_len: int,
+        pred_len: int,
+        c_in: int,
+        *,
+        llm_model: str = "meta-llama/Llama-2-7b-hf",
+        precision: int = 2,
+        num_samples: int = 1,
+        temperature: float = 0.7,
+        **kwargs
+    ) -> None:
+        from models.LLMTime import Model as LLMTime_Model
+        
+        configs = Namespace(
+            seq_len=int(seq_len),
+            pred_len=int(pred_len),
+            enc_in=int(c_in),
+            llm_model=llm_model,
+            precision=precision,
+            num_samples=num_samples,
+            temperature=temperature
+        )
+        
+        internal = LLMTime_Model(configs)
+        
+        super().__init__(
+            internal_model=internal,
+            seq_len=seq_len,
+            pred_len=pred_len,
+            c_in=c_in,
+            is_channel_independent=True,
+        )
+
+    def _forward_internal(self, x: Tensor) -> Tensor:
+        # LLMTime Model.forward already expects (B, L, F) and returns (B, pred_len, F)
+        return self.model(x)
+
+
 def load_tsfm_wrapper(model_name: str, seq_len: int, pred_len: int, c_in: int, checkpoint_path: Optional[str] = None) -> BaseTSFMWrapper:
     """
     Factory function used by main.py to obtain a wrapped TSFM.
@@ -478,5 +526,7 @@ def load_tsfm_wrapper(model_name: str, seq_len: int, pred_len: int, c_in: int, c
             if rest:
                 model_id = rest
         return MOMENTWrapper(seq_len=seq_len, pred_len=pred_len, c_in=c_in, model_name_or_path=model_id)
+    if name in {"llmtime", "llm-time", "llm_time"}:
+        return LLMTimeWrapper(seq_len=seq_len, pred_len=pred_len, c_in=c_in)
 
     raise ValueError(f"Unsupported TSFM model name: {model_name}")

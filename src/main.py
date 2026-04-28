@@ -196,6 +196,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     # WandB設定
     parser.add_argument("--use_wandb", action="store_true", help="Enable WandB logging")
     parser.add_argument("--project_name", type=str, default="TSFM-Robustness")
+    parser.add_argument("--llm_model", type=str, default="meta-llama/Llama-2-7b-hf", help="HuggingFace model name for LLMTime")
     return parser
 
 def main() -> None:
@@ -218,13 +219,18 @@ def main() -> None:
     
     # 1. モデルのロード
     model = load_tsfm_wrapper(args.model_name, args.seq_len, args.pred_len, c_in, checkpoint_path=args.checkpoint_path).to(device)
+    if hasattr(model.model, 'model_name') and args.llm_model:
+        model.model.model_name = args.llm_model
     
     # 2. 自動学習の判定ロジック (MOMENTのLinear Probing対応)
     is_moment = args.model_name.lower().startswith("moment")
+    is_llmtime = args.model_name.lower().startswith("llm")
     has_weights = args.checkpoint_path is not None and os.path.exists(args.checkpoint_path)
 
     if has_weights:
         print(f"ℹ️ 指定された重み ({args.checkpoint_path}) を使用して評価します。")
+    elif is_llmtime:
+        print(f"ℹ️ {args.model_name} はゼロショット予測モデルのため、学習をスキップします。")
     elif is_moment:
         print(f"⚠️ {args.model_name} は事前学習済みですが、予測Headが未学習です。Headのみ自動学習を開始します。")
         model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=True, use_wandb=args.use_wandb)
