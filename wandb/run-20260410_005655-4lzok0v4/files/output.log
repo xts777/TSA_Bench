@@ -1,0 +1,134 @@
+⚠️ iTransformer の学習済み重みが見つかりません。自動学習を開始します。
+
+🚀 [Auto-Train] 訓練データ (../experiment/dataset/ETTh1.csv) をロード中...
+=== Auto-Training Start (10 Epochs) ===
+  Epoch [1/10] - Train Loss (MSE): 0.3272
+  Epoch [2/10] - Train Loss (MSE): 0.3086
+  Epoch [3/10] - Train Loss (MSE): 0.3047
+  Epoch [4/10] - Train Loss (MSE): 0.2999
+  Epoch [5/10] - Train Loss (MSE): 0.3083
+  Epoch [6/10] - Train Loss (MSE): 0.3079
+  Epoch [7/10] - Train Loss (MSE): 0.3031
+  Epoch [8/10] - Train Loss (MSE): 0.3036
+  Epoch [9/10] - Train Loss (MSE): 0.3137
+  Epoch [10/10] - Train Loss (MSE): 0.3080
+=== Auto-Training Complete ===
+
+💾 学習済み重みを保存しました: ./weights/iTransformer_ETTh1_96_48.pth
+
+=== ベンチマーク（攻撃テスト）開始 ===
+  Progress: Batch 1/108
+  Progress: Batch 2/108
+  Progress: Batch 3/108
+  Progress: Batch 4/108
+  Progress: Batch 5/108
+  Progress: Batch 6/108
+  Progress: Batch 7/108
+  Progress: Batch 8/108
+  Progress: Batch 9/108
+  Progress: Batch 10/108
+  Progress: Batch 11/108
+  Progress: Batch 12/108
+  Progress: Batch 13/108
+  Progress: Batch 14/108
+  Progress: Batch 15/108
+  Progress: Batch 16/108
+  Progress: Batch 17/108
+  Progress: Batch 18/108
+  Progress: Batch 19/108
+  Progress: Batch 20/108
+  Progress: Batch 21/108
+  Progress: Batch 22/108
+  Progress: Batch 23/108
+  Progress: Batch 24/108
+  Progress: Batch 25/108
+  Progress: Batch 26/108
+  Progress: Batch 27/108
+  Progress: Batch 28/108
+  Progress: Batch 29/108
+  Progress: Batch 30/108
+  Progress: Batch 31/108
+  Progress: Batch 32/108
+  Progress: Batch 33/108
+  Progress: Batch 34/108
+  Progress: Batch 35/108
+  Progress: Batch 36/108
+  Progress: Batch 37/108
+  Progress: Batch 38/108
+  Progress: Batch 39/108
+  Progress: Batch 40/108
+  Progress: Batch 41/108
+  Progress: Batch 42/108
+  Progress: Batch 43/108
+  Progress: Batch 44/108
+  Progress: Batch 45/108
+  Progress: Batch 46/108
+  Progress: Batch 47/108
+  Progress: Batch 48/108
+  Progress: Batch 49/108
+  Progress: Batch 50/108
+  Progress: Batch 51/108
+  Progress: Batch 52/108
+  Progress: Batch 53/108
+  Progress: Batch 54/108
+  Progress: Batch 55/108
+  Progress: Batch 56/108
+  Progress: Batch 57/108
+  Progress: Batch 58/108
+  Progress: Batch 59/108
+  Progress: Batch 60/108
+  Progress: Batch 61/108
+  Progress: Batch 62/108
+  Progress: Batch 63/108
+  Progress: Batch 64/108
+  Progress: Batch 65/108
+  Progress: Batch 66/108
+  Progress: Batch 67/108
+  Progress: Batch 68/108
+  Progress: Batch 69/108
+  Progress: Batch 70/108
+  Progress: Batch 71/108
+  Progress: Batch 72/108
+  Progress: Batch 73/108
+  Progress: Batch 74/108
+  Progress: Batch 75/108
+  Progress: Batch 76/108
+  Progress: Batch 77/108
+  Progress: Batch 78/108
+  Progress: Batch 79/108
+  Progress: Batch 80/108
+  Progress: Batch 81/108
+  Progress: Batch 82/108
+  Progress: Batch 83/108
+  Progress: Batch 84/108
+  Progress: Batch 85/108
+  Progress: Batch 86/108
+  Progress: Batch 87/108
+  Progress: Batch 88/108
+  Progress: Batch 89/108
+  Progress: Batch 90/108
+  Progress: Batch 91/108
+  Progress: Batch 92/108
+  Progress: Batch 93/108
+  Progress: Batch 94/108
+  Progress: Batch 95/108
+  Progress: Batch 96/108
+  Progress: Batch 97/108
+  Progress: Batch 98/108
+  Progress: Batch 99/108
+  Progress: Batch 100/108
+  Progress: Batch 101/108
+  Progress: Batch 102/108
+  Progress: Batch 103/108
+  Progress: Batch 104/108
+  Progress: Batch 105/108
+  Progress: Batch 106/108
+  Progress: Batch 107/108
+  Progress: Batch 108/108
+
+============================== SUMMARY ==============================
+final/clean_mse: 11.354103
+final/clean_mae: 1.816217
+final/adv_mse: 11.675421
+final/adv_mae: 1.837999
+final/degradation: 0.028300

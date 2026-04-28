@@ -1,0 +1,79 @@
+/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/utils/generic.py:311: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  torch.utils._pytree._register_pytree_node(
+/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/momentfm/models/moment.py:174: UserWarning: Only reconstruction head is pre-trained. Classification and forecasting heads must be fine-tuned.
+  warnings.warn("Only reconstruction head is pre-trained. Classification and forecasting heads must be fine-tuned.")
+⚠️ MOMENT は事前学習済みですが、予測Headが未学習です。Headのみ自動学習を開始します。
+
+🚀 [Auto-Train] 訓練データ (../experiment/dataset/ETTh1.csv) をロード中...
+❄️ MOMENTのBackboneを凍結し、予測Headのみを学習(Linear Probing)します。
+=== Auto-Training Start (10 Epochs) ===
+Epoch 1/10:   0%|                                                                                                                                                                                          | 0/5155 [00:00<?, ?it/s]/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py:632: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In version 2.5 we will raise an exception if use_reentrant is not passed. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+Traceback (most recent call last):                                                                                                                                                                                                  
+  File "/home/ubuntu/TSA/src/main.py", line 285, in <module>
+    main()
+  File "/home/ubuntu/TSA/src/main.py", line 198, in main
+    model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.batch_size, args.train_epochs, args.learning_rate, device, is_moment=True)
+  File "/home/ubuntu/TSA/src/main.py", line 128, in train_model
+    pred = wrapper(batch_x)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/model.py", line 65, in forward
+    y = self._forward_internal(x)
+  File "/home/ubuntu/TSA/src/model.py", line 430, in _forward_internal
+    out = self.model(x_enc=x_enc, input_mask=input_mask)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/momentfm/models/moment.py", line 227, in __call__
+    return self.forward(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/momentfm/models/moment.py", line 587, in forward
+    return self.forecast(x_enc=x_enc, input_mask=input_mask, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/momentfm/models/moment.py", line 452, in forecast
+    outputs = self.encoder(inputs_embeds=enc_in, attention_mask=attention_mask)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 1110, in forward
+    layer_outputs = checkpoint(
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/_compile.py", line 32, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 632, in _fn
+    return fn(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/utils/checkpoint.py", line 489, in checkpoint
+    return CheckpointFunction.apply(function, preserve, *args)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/autograd/function.py", line 575, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/utils/checkpoint.py", line 264, in forward
+    outputs = run_function(*args)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 1106, in custom_forward
+    return tuple(module(*inputs, use_cache, output_attentions))
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 695, in forward
+    self_attention_outputs = self.layer[0](
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 602, in forward
+    attention_output = self.SelfAttention(
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 524, in forward
+    key_states = project(
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/transformers/models/t5/modeling_t5.py", line 498, in project
+    hidden_states = shape(proj_layer(hidden_states))
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+KeyboardInterrupt

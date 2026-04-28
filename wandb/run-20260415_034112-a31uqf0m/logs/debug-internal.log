@@ -1,0 +1,13 @@
+{"time":"2026-04-15T03:41:12.837663832Z","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2026-04-15T03:41:13.226989349Z","level":"INFO","msg":"stream: created new stream","id":"a31uqf0m"}
+{"time":"2026-04-15T03:41:13.227208444Z","level":"INFO","msg":"handler: started","stream_id":"a31uqf0m"}
+{"time":"2026-04-15T03:41:13.227742944Z","level":"INFO","msg":"writer: started","stream_id":"a31uqf0m"}
+{"time":"2026-04-15T03:41:13.227808611Z","level":"INFO","msg":"sender: started","stream_id":"a31uqf0m"}
+{"time":"2026-04-15T03:41:13.227885559Z","level":"INFO","msg":"stream: started","id":"a31uqf0m"}
+{"time":"2026-04-15T08:25:00.871669223Z","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/graphql","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2026-04-15T13:26:47.682552377Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-04-15T13:26:48.047319684Z","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-04-15T13:26:48.059141777Z","level":"INFO","msg":"stream: closing","id":"a31uqf0m"}
+{"time":"2026-04-15T13:26:48.059210873Z","level":"INFO","msg":"handler: closed","stream_id":"a31uqf0m"}
+{"time":"2026-04-15T13:26:48.059375872Z","level":"INFO","msg":"sender: closed","stream_id":"a31uqf0m"}
+{"time":"2026-04-15T13:26:48.059406773Z","level":"INFO","msg":"stream: closed","id":"a31uqf0m"}

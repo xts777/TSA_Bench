@@ -1,0 +1,82 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            tdzzv7dtpud0fnu5s5x2hp47os5mzhvh:
+                args:
+                    - --data_path
+                    - ../experiment/dataset/ETTh1.csv
+                    - --model_name
+                    - iTransformer
+                    - --use_wandb
+                codePath: src/main.py
+                codePathLocal: src/main.py
+                cpu_count: 20
+                cpu_count_logical: 2
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "100000071680"
+                        used: "53215100928"
+                email: tonyxia777@gmail.com
+                executable: /home/ubuntu/miniconda3/envs/tsfm-bench/bin/python
+                gpu: NVIDIA GeForce RTX 2080 Ti
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 4352
+                      memoryTotal: "11811160064"
+                      name: NVIDIA GeForce RTX 2080 Ti
+                      uuid: GPU-a6d59c83-c9a5-cc6d-86b8-76e99d038d5d
+                host: jupyterhub-singleuser-instance-txia
+                memory:
+                    total: "16000000000"
+                os: Linux-6.8.0-106-generic-x86_64-with-glibc2.27
+                program: /home/ubuntu/TSA/src/main.py
+                python: CPython 3.10.18
+                root: /home/ubuntu/TSA
+                startedAt: "2026-04-10T00:56:55.988687Z"
+                writerId: tdzzv7dtpud0fnu5s5x2hp47os5mzhvh
+        m: []
+        python_version: 3.10.18
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 2
+                - 13
+                - 16
+            "4": 3.10.18
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-x86_64
+attack_method:
+    value: TSA
+batch_size:
+    value: 32
+checkpoint_path:
+    value: null
+data_path:
+    value: ../experiment/dataset/ETTh1.csv
+epsilon:
+    value: 0.1
+learning_rate:
+    value: 0.001
+max_batches:
+    value: 0
+model_name:
+    value: iTransformer
+pred_len:
+    value: 48
+project_name:
+    value: TSFM-Robustness
+seq_len:
+    value: 96
+tau:
+    value: 9
+train_epochs:
+    value: 10
+use_wandb:
+    value: true

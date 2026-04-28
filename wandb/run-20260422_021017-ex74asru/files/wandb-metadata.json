@@ -1,0 +1,47 @@
+{
+  "os": "Linux-6.8.0-106-generic-x86_64-with-glibc2.27",
+  "python": "CPython 3.10.18",
+  "startedAt": "2026-04-22T02:10:17.550311Z",
+  "args": [
+    "--data_path",
+    "../experiment/dataset/ETTh1.csv",
+    "--model_name",
+    "MOMENT",
+    "--batch_size",
+    "16",
+    "--checkpoint_path",
+    "weights/MOMENT_ETTh1_head.pth",
+    "--use_wandb"
+  ],
+  "program": "/home/ubuntu/TSA/src/main.py",
+  "codePath": "src/main.py",
+  "codePathLocal": "src/main.py",
+  "email": "tonyxia777@gmail.com",
+  "root": "/home/ubuntu/TSA",
+  "host": "jupyterhub-singleuser-instance-txia",
+  "executable": "/home/ubuntu/miniconda3/envs/tsfm-bench/bin/python",
+  "cpu_count": 20,
+  "cpu_count_logical": 2,
+  "gpu": "NVIDIA GeForce RTX 2080 Ti",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "100000071680",
+      "used": "63020072960"
+    }
+  },
+  "memory": {
+    "total": "16000000000"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 2080 Ti",
+      "memoryTotal": "11811160064",
+      "cudaCores": 4352,
+      "architecture": "Turing",
+      "uuid": "GPU-101ae5ff-c7ab-749f-2285-b4306bbb8c09"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "jup6cdyuhp8nvkum991zxsjg2139gcq9"
+}

@@ -1,0 +1,89 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            9i9t3j9l3dxreezgssr9j5oyf7cfltb4:
+                args:
+                    - --data_path
+                    - ../experiment/dataset/ETTh1.csv
+                    - --model_name
+                    - MOMENT
+                    - --use_wandb
+                    - --batch_size
+                    - "2"
+                    - --max_batches
+                    - "1"
+                codePath: src/main.py
+                codePathLocal: src/main.py
+                cpu_count: 20
+                cpu_count_logical: 2
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "100000071680"
+                        used: "54618357760"
+                email: tonyxia777@gmail.com
+                executable: /home/ubuntu/miniconda3/envs/tsfm-bench/bin/python
+                gpu: NVIDIA GeForce RTX 2080 Ti
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 4352
+                      memoryTotal: "11811160064"
+                      name: NVIDIA GeForce RTX 2080 Ti
+                      uuid: GPU-1d8b7746-1609-b504-a2d0-762bc104d4f2
+                host: jupyterhub-singleuser-instance-txia
+                memory:
+                    total: "16000000000"
+                os: Linux-6.8.0-106-generic-x86_64-with-glibc2.27
+                program: /home/ubuntu/TSA/src/main.py
+                python: CPython 3.10.18
+                root: /home/ubuntu/TSA
+                startedAt: "2026-04-15T14:10:40.480937Z"
+                writerId: 9i9t3j9l3dxreezgssr9j5oyf7cfltb4
+        m: []
+        python_version: 3.10.18
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+                - 11
+                - 49
+            "3":
+                - 13
+                - 16
+            "4": 3.10.18
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-x86_64
+attack_method:
+    value: TSA
+batch_size:
+    value: 2
+checkpoint_path:
+    value: null
+data_path:
+    value: ../experiment/dataset/ETTh1.csv
+epsilon:
+    value: 0.1
+learning_rate:
+    value: 0.001
+max_batches:
+    value: 1
+model_name:
+    value: MOMENT
+pred_len:
+    value: 48
+project_name:
+    value: TSFM-Robustness
+seed:
+    value: 2026
+seq_len:
+    value: 96
+tau:
+    value: 9
+train_epochs:
+    value: 10
+use_wandb:
+    value: true

@@ -1,0 +1,11 @@
+{"time":"2026-04-12T01:17:46.592286847Z","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2026-04-12T01:17:46.917438793Z","level":"INFO","msg":"stream: created new stream","id":"kvygda3d"}
+{"time":"2026-04-12T01:17:46.917671109Z","level":"INFO","msg":"handler: started","stream_id":"kvygda3d"}
+{"time":"2026-04-12T01:17:46.91814251Z","level":"INFO","msg":"stream: started","id":"kvygda3d"}
+{"time":"2026-04-12T01:17:46.918398255Z","level":"INFO","msg":"writer: started","stream_id":"kvygda3d"}
+{"time":"2026-04-12T01:17:46.918577353Z","level":"INFO","msg":"sender: started","stream_id":"kvygda3d"}
+{"time":"2026-04-12T02:56:50.43774933Z","level":"INFO","msg":"stream: closing","id":"kvygda3d"}
+{"time":"2026-04-12T02:56:51.066056526Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-04-12T02:56:51.327982815Z","level":"INFO","msg":"handler: closed","stream_id":"kvygda3d"}
+{"time":"2026-04-12T02:56:51.328220868Z","level":"INFO","msg":"sender: closed","stream_id":"kvygda3d"}
+{"time":"2026-04-12T02:56:51.328279514Z","level":"INFO","msg":"stream: closed","id":"kvygda3d"}

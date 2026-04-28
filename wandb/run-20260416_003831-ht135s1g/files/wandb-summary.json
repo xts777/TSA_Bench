@@ -1,0 +1,1 @@
+{"batch/degradation_ratio":1.0009126189182023,"batch_idx":0,"_timestamp":1.776300030746823e+09,"_wandb":{"runtime":117},"_runtime":117,"_step":0,"batch/clean_mse":23.62713050842285,"batch/adv_mse":23.648693084716797}

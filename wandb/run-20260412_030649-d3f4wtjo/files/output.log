@@ -1,0 +1,67 @@
+🌱 Random seed fixed to: 2026
+/home/ubuntu/TSA/src/model.py:199: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  state = torch.load(checkpoint_path, map_location="cpu")
+ℹ️ 指定された重み (./weights/PatchTST_ETTh1_96_48.pth) を使用して評価します。
+🔍 自动选择的监控层数: 4 层
+
+=== ベンチマーク（攻撃テスト）開始 ===
+Traceback (most recent call last):
+  File "/home/ubuntu/TSA/src/main.py", line 259, in <module>
+    main()
+  File "/home/ubuntu/TSA/src/main.py", line 207, in main
+    w = attacker.attack(batch_x[i:i+1], y_hat_clean[i:i+1])
+  File "/home/ubuntu/TSA/src/attacker.py", line 99, in attack
+    return self._serial_instance_attack(x, y_hat)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/attacker.py", line 119, in _serial_instance_attack
+    j_perturb = self._zero_order_gradient_estimation(x, y_hat, j)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/attacker.py", line 66, in _zero_order_gradient_estimation
+    loss_pos = self.loss_fn(self.model(x_pos), y_hat)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/model.py", line 65, in forward
+    y = self._forward_internal(x)
+  File "/home/ubuntu/TSA/src/model.py", line 221, in _forward_internal
+    y_t = self.model.model(x_t)  # (B, F, pred_len)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 74, in forward
+    z = self.backbone(z)                                                                # z: [bs x nvars x d_model x patch_num]
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 168, in forward
+    z = self.encoder(u)                                                      # z: [bs * nvars x patch_num x d_model]
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 193, in forward
+    for mod in self.layers: output, scores = mod(output, prev=scores, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 244, in forward
+    src2, attn, scores = self.self_attn(src, src, src, prev, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 312, in forward
+    output, attn_weights, attn_scores = self.sdp_attn(q_s, k_s, v_s, prev=prev, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/ubuntu/miniconda3/envs/tsfm-bench/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/TSA/src/layers/PatchTST_backbone.py", line 354, in forward
+    attn_scores = torch.matmul(q, k) * self.scale      # attn_scores : [bs x n_heads x max_q_len x q_len]
+KeyboardInterrupt

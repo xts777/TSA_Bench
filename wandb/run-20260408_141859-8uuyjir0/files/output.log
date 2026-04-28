@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/TSA/src/main.py", line 148, in <module>
+    main()
+  File "/home/ubuntu/TSA/src/main.py", line 81, in main
+    test_loader, scaler = get_dataloader_and_scaler(args.data_path, args.seq_len, args.pred_len, args.batch_size)
+  File "/home/ubuntu/TSA/src/data.py", line 136, in get_dataloader_and_scaler
+    raise ValueError(f"未找到数据: {data_path}")
+ValueError: 未找到数据: ..experiment/dataset/ETTh1.csv

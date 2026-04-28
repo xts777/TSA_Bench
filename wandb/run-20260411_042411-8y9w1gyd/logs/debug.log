@@ -1,0 +1,23 @@
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_setup.py:_flush():80] Current SDK version is 0.23.0
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_setup.py:_flush():80] Configure stats pid to 1966
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_setup.py:_flush():80] Loading settings from /home/ubuntu/.config/wandb/settings
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_setup.py:_flush():80] Loading settings from /home/ubuntu/TSA/wandb/settings
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_init.py:setup_run_log_directory():713] Logging user logs to /home/ubuntu/TSA/wandb/run-20260411_042411-8y9w1gyd/logs/debug.log
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_init.py:setup_run_log_directory():714] Logging internal logs to /home/ubuntu/TSA/wandb/run-20260411_042411-8y9w1gyd/logs/debug-internal.log
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_init.py:init():840] calling init triggers
+2026-04-11 04:24:11,691 INFO    MainThread:1966 [wandb_init.py:init():845] wandb.init called with sweep_config: {}
+config: {'data_path': '../experiment/dataset/ETTh1.csv', 'model_name': 'PatchTST', 'attack_method': 'TSA', 'seq_len': 96, 'pred_len': 48, 'batch_size': 32, 'tau': 9, 'epsilon': 0.1, 'max_batches': 0, 'checkpoint_path': './weights/PatchTST_ETTh1_96_48.pth', 'train_epochs': 10, 'learning_rate': 0.001, 'use_wandb': True, 'project_name': 'TSFM-Robustness', 'seed': 2026, '_wandb': {}}
+2026-04-11 04:24:11,692 INFO    MainThread:1966 [wandb_init.py:init():888] starting backend
+2026-04-11 04:24:11,931 INFO    MainThread:1966 [wandb_init.py:init():891] sending inform_init request
+2026-04-11 04:24:11,936 INFO    MainThread:1966 [wandb_init.py:init():899] backend started and connected
+2026-04-11 04:24:11,962 INFO    MainThread:1966 [wandb_init.py:init():969] updated telemetry
+2026-04-11 04:24:11,963 INFO    MainThread:1966 [wandb_init.py:init():993] communicating run to backend with 90.0 second timeout
+2026-04-11 04:24:12,627 INFO    MainThread:1966 [wandb_init.py:init():1040] starting run threads in backend
+2026-04-11 04:24:12,704 INFO    MainThread:1966 [wandb_run.py:_console_start():2504] atexit reg
+2026-04-11 04:24:12,704 INFO    MainThread:1966 [wandb_run.py:_redirect():2352] redirect: wrap_raw
+2026-04-11 04:24:12,704 INFO    MainThread:1966 [wandb_run.py:_redirect():2421] Wrapping output streams.
+2026-04-11 04:24:12,705 INFO    MainThread:1966 [wandb_run.py:_redirect():2444] Redirects installed.
+2026-04-11 04:24:12,708 INFO    MainThread:1966 [wandb_init.py:init():1080] run started, returning control to user process
+2026-04-11 04:24:54,362 INFO    wandb-AsyncioManager-main:1966 [service_client.py:_forward_responses():80] Reached EOF.
+2026-04-11 04:24:54,362 INFO    wandb-AsyncioManager-main:1966 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.

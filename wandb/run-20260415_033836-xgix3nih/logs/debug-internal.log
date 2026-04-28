@@ -1,0 +1,11 @@
+{"time":"2026-04-15T03:38:36.951726708Z","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2026-04-15T03:38:37.37655462Z","level":"INFO","msg":"stream: created new stream","id":"xgix3nih"}
+{"time":"2026-04-15T03:38:37.376915333Z","level":"INFO","msg":"handler: started","stream_id":"xgix3nih"}
+{"time":"2026-04-15T03:38:37.377607444Z","level":"INFO","msg":"stream: started","id":"xgix3nih"}
+{"time":"2026-04-15T03:38:37.377698767Z","level":"INFO","msg":"writer: started","stream_id":"xgix3nih"}
+{"time":"2026-04-15T03:38:37.377788497Z","level":"INFO","msg":"sender: started","stream_id":"xgix3nih"}
+{"time":"2026-04-15T03:38:39.17758089Z","level":"INFO","msg":"stream: closing","id":"xgix3nih"}
+{"time":"2026-04-15T03:38:40.261650942Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-04-15T03:38:40.61817391Z","level":"INFO","msg":"handler: closed","stream_id":"xgix3nih"}
+{"time":"2026-04-15T03:38:40.618435806Z","level":"INFO","msg":"sender: closed","stream_id":"xgix3nih"}
+{"time":"2026-04-15T03:38:40.618484959Z","level":"INFO","msg":"stream: closed","id":"xgix3nih"}
