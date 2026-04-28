@@ -1,4 +1,4 @@
-./weights
-./wandb
-./*.ipynb
-./sample_data
+weights/
+wandb/
+*.ipynb
+sample_data/
