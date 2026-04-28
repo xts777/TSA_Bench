@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from src.utils.llmtime_utils import LLMTimeSerializer, LLMQuantileScaler
+from utils.llmtime_utils import LLMTimeSerializer, LLMQuantileScaler
 
 class Model(nn.Module):
     """
