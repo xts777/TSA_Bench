@@ -1,7 +1,0 @@
-
-============================== SUMMARY ==============================
-final/clean_mse: 28.553680
-final/clean_mae: 2.953621
-final/adv_mse: 28.640442
-final/adv_mae: 2.959578
-final/degradation: 0.003039

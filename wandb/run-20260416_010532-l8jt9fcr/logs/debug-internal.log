@@ -1,9 +1,0 @@
-{"time":"2026-04-16T01:05:32.610485777Z","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
-{"time":"2026-04-16T01:05:32.982662998Z","level":"INFO","msg":"stream: created new stream","id":"l8jt9fcr"}
-{"time":"2026-04-16T01:05:32.982790717Z","level":"INFO","msg":"handler: started","stream_id":"l8jt9fcr"}
-{"time":"2026-04-16T01:05:32.983021286Z","level":"INFO","msg":"stream: started","id":"l8jt9fcr"}
-{"time":"2026-04-16T01:05:32.983274744Z","level":"INFO","msg":"writer: started","stream_id":"l8jt9fcr"}
-{"time":"2026-04-16T01:05:32.983374947Z","level":"INFO","msg":"sender: started","stream_id":"l8jt9fcr"}
-{"time":"2026-04-16T15:44:33.203802795Z","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/tonyxia777-keio-jp/TSFM-Robustness/l8jt9fcr/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
-{"time":"2026-04-16T16:55:43.499676236Z","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/tonyxia777-keio-jp/TSFM-Robustness/l8jt9fcr/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
-{"time":"2026-04-16T22:55:19.035456848Z","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/tonyxia777-keio-jp/TSFM-Robustness/l8jt9fcr/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
