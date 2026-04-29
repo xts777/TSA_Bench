@@ -57,13 +57,15 @@ def set_seed(seed: int = 2024):
     torch.backends.cudnn.benchmark = True
 
 def _auto_select_target_layers(model: nn.Module) -> List[str]:
+    # HuggingFaceのRMSNormなどはnn.LayerNormを継承していない場合があるため、名前ベースのチェックも考慮
     preferred_types = (nn.Linear, nn.Conv1d, nn.MultiheadAttention, nn.LayerNorm)
+    llama_types = ("LlamaRMSNorm", "LlamaAttention", "LlamaMLP")
     candidates = []
 
     # 1. Encoderブロック「以外」の層をすべて網羅（余裕があるため全取得）
     for name, m in model.named_modules():
         if ".encoder.block." not in name:
-            if isinstance(m, preferred_types):
+            if isinstance(m, preferred_types) or m.__class__.__name__ in llama_types:
                 if name not in candidates:
                     candidates.append(name)
 
@@ -71,7 +73,8 @@ def _auto_select_target_layers(model: nn.Module) -> List[str]:
     must_watch_suffixes = [
         "backbone", "head.flatten", "head.linear",  # PatchTST用
         "encoder", "projection", "inner_attention", # iTransformer用
-        "final_layer_norm"                          # MOMENTの全ブロック通過後
+        "final_layer_norm",                         # MOMENTの全ブロック通過後
+        "model.layers"                              # Llama/LLMTime用
     ]
 
     # MOMENTの24層の中身から「Attention」「FFN」「ブロック出口」を抽出
@@ -253,6 +256,10 @@ def main() -> None:
         attacker = GWNAttacker(model, loss_fn)
     else:
         attacker = TSAttacker(model, loss_fn, args.tau, args.epsilon, 5, model.is_channel_independent)
+
+    if is_llmtime:
+        if hasattr(model.model, '_init_llm'):
+            model.model._init_llm()
 
     observer = TSFMObserver(model, _auto_select_target_layers(model))
     clean_metrics, adv_metrics = MetricAccumulator(), MetricAccumulator()

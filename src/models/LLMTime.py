@@ -31,13 +31,15 @@ class Model(nn.Module):
         self.temp = getattr(configs, 'temperature', 0.7)
 
     def _init_llm(self):
-        if self.tokenizer is None:
-            from transformers import AutoTokenizer, AutoModelForCausalLM
-            print(f"Loading LLM: {self.model_name}...")
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self.llm = AutoModelForCausalLM.from_pretrained(self.model_name).to(self.device)
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
+        if self.tokenizer is not None and self.llm is not None:
+            return
+            
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+        print(f"Loading LLM: {self.model_name}...")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.llm = AutoModelForCausalLM.from_pretrained(self.model_name).to(self.device)
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
 
     def forward(self, x):
         """
