@@ -196,7 +196,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     # WandB設定
     parser.add_argument("--use_wandb", action="store_true", help="Enable WandB logging")
     parser.add_argument("--project_name", type=str, default="TSFM-Robustness")
-    parser.add_argument("--llm_model", type=str, default="meta-llama/Llama-2-7b-hf", help="HuggingFace model name for LLMTime")
+    parser.add_argument("--llm_model", type=str, default="meta-llama/Llama-3.2-3B", help="HuggingFace model name for LLMTime")
     return parser
 
 def main() -> None:
