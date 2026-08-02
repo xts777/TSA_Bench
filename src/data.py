@@ -11,27 +11,21 @@ from torch.utils.data import Dataset, DataLoader
 # ==========================================
 DATASET_URLS = {
     "ETTh1": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTh1.csv",
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTh1.csv",
         "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTh1.csv"
     ],
     "ETTh2": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTh2.csv",
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTh2.csv",
         "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTh2.csv"
     ],
     "ETTm1": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTm1.csv",
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTm1.csv",
         "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTm1.csv"
     ],
     "ETTm2": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTm2.csv",
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTm2.csv",
         "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTm2.csv"
     ],
-    "Weather": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/weather/weather.csv"
-    ],
-    "Electricity": [
-        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/electricity/electricity.csv"
-    ]
 }
 
 def download_dataset_if_needed(dataset_name_or_path: str, save_dir: str = "data") -> str:
@@ -62,7 +56,9 @@ def download_dataset_if_needed(dataset_name_or_path: str, save_dir: str = "data"
         for url in urls:
             print(f"📥 Downloading standard benchmark dataset '{matched_key}' from {url}...")
             try:
-                urllib.request.urlretrieve(url, target_path)
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req) as response, open(target_path, 'wb') as out_file:
+                    out_file.write(response.read())
                 print(f"✅ Successfully downloaded '{matched_key}' to {target_path}")
                 download_success = True
                 break

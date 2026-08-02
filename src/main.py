@@ -256,7 +256,7 @@ def train_model(
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="TSFM Robustness Benchmark with WandB")
     parser.add_argument("--data_path", type=str, default=None, help="Path to data file/directory, or benchmark dataset name")
-    parser.add_argument("--dataset", type=str, default=None, help="Standard benchmark dataset name (e.g. ETTh1, ETTh2, ETTm1, ETTm2, Weather)")
+    parser.add_argument("--dataset", type=str, default=None, choices=["ETTh1", "ETTh2", "ETTm1", "ETTm2"], help="Verified benchmark dataset name (ETTh1, ETTh2, ETTm1, ETTm2)")
     parser.add_argument("--model_name", type=str, default="PatchTST", choices=list(SUPPORTED_MODELS.keys()))
     parser.add_argument("--attack_method", type=str, default="TSA", choices=["TSA", "GWN", "FGSM", "PGD"])
     parser.add_argument("--seq_len", type=int, default=96)
