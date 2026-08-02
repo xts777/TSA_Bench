@@ -1,7 +1,6 @@
 weights/
 wandb/
 *.ipynb
-sample_data/
 
 # Python bytecode
 __pycache__/
