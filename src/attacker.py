@@ -220,17 +220,24 @@ class TSFMObserver:
             if layer in clean_features and layer in adv_features:
                 clean_tensor = clean_features[layer]
                 adv_tensor = adv_features[layer]
+                clean_flat = clean_tensor.flatten(start_dim=1)
+                adv_flat = adv_tensor.flatten(start_dim=1)
+                diff_flat = adv_flat - clean_flat
 
-                squared_diff = F.mse_loss(clean_tensor, adv_tensor, reduction="none")
-                dims_to_reduce_mse = tuple(range(1, squared_diff.ndim))
-                mse_per_instance = squared_diff.mean(dim=dims_to_reduce_mse)
+                mse_per_instance = diff_flat.pow(2).mean(dim=1)
+                cos_sim = F.cosine_similarity(clean_flat, adv_flat, dim=1)
 
-                cos_sim = F.cosine_similarity(clean_tensor, adv_tensor, dim=-1)
-                mean_cos_sim = cos_sim.mean(dim=1)
+                clean_norm = clean_flat.norm(p=2, dim=1)
+                adv_norm = adv_flat.norm(p=2, dim=1)
+                norm_ratio = adv_norm / (clean_norm + 1e-8)
+
+                l_inf = diff_flat.abs().max(dim=1).values
 
                 divergence_report[layer] = {
                     "mse": mse_per_instance.cpu().numpy(),
-                    "cos_dist": mean_cos_sim.cpu().numpy()
+                    "cos_dist": cos_sim.cpu().numpy(),
+                    "norm_ratio": norm_ratio.cpu().numpy(),
+                    "l_inf": l_inf.cpu().numpy()
                 }
 
         return divergence_report

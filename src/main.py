@@ -46,7 +46,7 @@ class MetricAccumulator:
     def mae(self) -> float: return self.sum_abs_err / max(1, self.n_elem)
 
 def set_seed(seed: int = 2024):
-    """すべての乱数シードを固定し、実験の再現性を担保する"""
+    """Fix all random seeds to improve experiment reproducibility."""
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
@@ -57,40 +57,40 @@ def set_seed(seed: int = 2024):
     torch.backends.cudnn.benchmark = True
 
 def _auto_select_target_layers(model: nn.Module) -> List[str]:
-    # HuggingFaceのRMSNormなどはnn.LayerNormを継承していない場合があるため、名前ベースのチェックも考慮
+    # Some HuggingFace RMSNorm variants do not inherit from nn.LayerNorm, so we also check by class name.
     preferred_types = (nn.Linear, nn.Conv1d, nn.MultiheadAttention, nn.LayerNorm)
     llama_types = ("LlamaRMSNorm", "LlamaAttention", "LlamaMLP")
     candidates = []
 
-    # 1. Encoderブロック「以外」の層をすべて網羅（余裕があるため全取得）
+    # Pass 1: collect all layers outside encoder blocks.
     for name, m in model.named_modules():
         if ".encoder.block." not in name:
             if isinstance(m, preferred_types) or m.__class__.__name__ in llama_types:
                 if name not in candidates:
                     candidates.append(name)
 
-    # 2. ピンポイントで狙い撃ちするサフィックス
+    # Pass 2: add model-specific suffixes that we want to monitor.
     must_watch_suffixes = [
-        "backbone", "head.flatten", "head.linear",  # PatchTST用
-        "encoder", "projection", "inner_attention", # iTransformer用
-        "final_layer_norm",                         # MOMENTの全ブロック通過後
-        "model.layers"                              # Llama/LLMTime用
+        "backbone", "head.flatten", "head.linear",  # For PatchTST
+        "encoder", "projection", "inner_attention", # For iTransformer
+        "final_layer_norm",                            # After all MOMENT blocks
+        "model.layers"                                 # For Llama / LLMTime
     ]
 
-    # MOMENTの24層の中身から「Attention」「FFN」「ブロック出口」を抽出
+    # Extract attention, FFN, and block-output layers from the 24 MOMENT blocks.
     for i in range(24):
         must_watch_suffixes.append(f"block.{i}")                                 
         must_watch_suffixes.append(f"block.{i}.layer.0.SelfAttention.o")         
         must_watch_suffixes.append(f"block.{i}.layer.1.DenseReluDense.wo")       
 
-    # 3. 指定したサフィックスに一致する層を回収
+    # Pass 3: collect layers whose names match the selected suffixes.
     for name, m in model.named_modules():
         for suffix in must_watch_suffixes:
             if name.endswith(suffix):
                 if name not in candidates:
                     candidates.append(name)
 
-    print(f"🔍 自動選択された監視層: {len(candidates)} 層")
+    print(f"🔍 Automatically selected monitoring layers: {len(candidates)} layers")
     return candidates
 
 
@@ -107,39 +107,39 @@ def train_model(
         use_wandb: bool = False,
     ):
     """
-    自動学習用の関数。MOMENTの場合はHeadのみをLinear Probingします。
+        Automatic training helper. For MOMENT, only the prediction head is trained via linear probing.
 
     Args:
-        wrapper: モデルラッパー
-        data_path: 訓練データのパス
-        seq_len: 入力系列長
-        pred_len: 予測系列長
-        batch_size: バッチサイズ
-        epochs: エポック数
-        lr: 学習率
-        device: デバイス
-        is_moment: MOMENTかどうか
-        use_wandb: WandBを使用するかどうか
+            wrapper: Model wrapper.
+            data_path: Training data path.
+            seq_len: Input sequence length.
+            pred_len: Prediction horizon.
+            batch_size: Batch size.
+            epochs: Number of epochs.
+            lr: Learning rate.
+            device: Device.
+            is_moment: Whether the model is MOMENT.
+            use_wandb: Whether to use WandB.
     Returns:
-        nn.Module: 学習済みモデル
+            nn.Module: Trained model.
     """
-    print(f"\n🚀 [Auto-Train] 訓練データ ({data_path}) をロード中...")
+    print(f"\n🚀 [Auto-Train] Loading training data ({data_path})...")
     train_loader, _ = get_dataloader_and_scaler(data_path, seq_len, pred_len, batch_size, flag='train')
 
     wrapper.train()
-    
+
     if is_moment:
-        print("❄️ MOMENTのBackboneを凍結し、予測Headのみを学習(Linear Probing)します。")
+        print("❄️ Freezing the MOMENT backbone and training only the prediction head (linear probing).")
         for name, param in wrapper.named_parameters():
             if "head" in name:
-                param.requires_grad = True  # Headだけ学習
+                param.requires_grad = True  # Train the head only.
             else:
-                param.requires_grad = False # Backboneは凍結
+                param.requires_grad = False # Freeze the backbone.
     else:
         for p in wrapper.parameters():
             p.requires_grad = True
 
-    # 学習対象のパラメータだけをOptimizerに渡す
+    # Pass only trainable parameters to the optimizer.
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, wrapper.parameters()), lr=lr)
     criterion = nn.MSELoss()
 
@@ -150,17 +150,17 @@ def train_model(
         pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", leave=False)
         for batch_idx, (batch_x, batch_y) in enumerate(pbar):
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
-            
+
             optimizer.zero_grad()
             pred = wrapper(batch_x)
             loss = criterion(pred, batch_y)
             loss.backward()
             optimizer.step()
-            
+
             total_loss += loss.item()
 
             pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
-            
+
         avg_loss = total_loss / len(train_loader)
         print(f"  Epoch [{epoch+1}/{epochs}] - Train Loss (MSE): {avg_loss:.4f}")
 
@@ -188,7 +188,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--epsilon", type=float, default=0.1)
     parser.add_argument("--max_batches", type=int, default=0)
     
-    # 自動学習・シード関連
+    # Auto-training and seed settings
     parser.add_argument("--checkpoint_path", type=str, default=None, help="Path to pre-trained weights")
     parser.add_argument("--train_epochs", type=int, default=10)
     parser.add_argument("--train_batch_size", type=int, default=32)
@@ -196,7 +196,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--memo", type=str, default=None)
 
-    # WandB設定
+    # WandB settings
     parser.add_argument("--use_wandb", action="store_true", help="Enable WandB logging")
     parser.add_argument("--project_name", type=str, default="TSFM-Robustness")
     parser.add_argument("--llm_model", type=str, default="meta-llama/Llama-3.2-3B", help="HuggingFace model name for LLMTime")
@@ -220,28 +220,28 @@ def main() -> None:
     test_loader, scaler = get_dataloader_and_scaler(args.data_path, args.seq_len, args.pred_len, args.batch_size, flag='test')
     c_in = int(np.asarray(scaler.mean).shape[0]) if np.asarray(scaler.mean).ndim > 0 else 1
     
-    # 1. モデルのロード
+    # Step 1: load the model.
     model = load_tsfm_wrapper(args.model_name, args.seq_len, args.pred_len, c_in, checkpoint_path=args.checkpoint_path).to(device)
     if hasattr(model.model, 'model_name') and args.llm_model:
         model.model.model_name = args.llm_model
     
-    # 2. 自動学習の判定ロジック (MOMENTのLinear Probing対応)
+    # Step 2: decide whether to auto-train, including MOMENT linear probing.
     is_moment = args.model_name.lower().startswith("moment")
     is_llmtime = args.model_name.lower().startswith("llm")
     has_weights = args.checkpoint_path is not None and os.path.exists(args.checkpoint_path)
 
     if has_weights:
-        print(f"ℹ️ 指定された重み ({args.checkpoint_path}) を使用して評価します。")
+        print(f"ℹ️ Evaluating with the specified weights ({args.checkpoint_path}).")
     elif is_llmtime:
-        print(f"ℹ️ {args.model_name} はゼロショット予測モデルのため、学習をスキップします。")
+        print(f"ℹ️ {args.model_name} is a zero-shot forecasting model, so training is skipped.")
     elif is_moment:
-        print(f"⚠️ {args.model_name} は事前学習済みですが、予測Headが未学習です。Headのみ自動学習を開始します。")
+        print(f"⚠️ {args.model_name} is pretrained, but its prediction head is untrained. Starting automatic head-only training.")
         model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=True, use_wandb=args.use_wandb)
         os.makedirs("./weights", exist_ok=True)
         dataset_name = os.path.basename(args.data_path).split('.')[0]
         torch.save(model.model.state_dict(), f"./weights/{args.model_name}_{dataset_name}_head.pth")
     else:
-        print(f"⚠️ {args.model_name} の学習済み重みが見つかりません。フルスクラッチ自動学習を開始します。")
+        print(f"⚠️ No pretrained weights were found for {args.model_name}. Starting automatic training from scratch.")
         model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=False, use_wandb=args.use_wandb)
         os.makedirs("./weights", exist_ok=True)
         dataset_name = os.path.basename(args.data_path).split('.')[0]
@@ -250,7 +250,7 @@ def main() -> None:
         else:
             torch.save(model.model.state_dict(), f"./weights/{args.model_name}_{dataset_name}.pth")
 
-    # 3. 攻撃の準備
+    # Step 3: prepare the attacker.
     loss_fn = nn.MSELoss()
     if args.attack_method == "GWN":
         attacker = GWNAttacker(model, loss_fn)
@@ -265,7 +265,7 @@ def main() -> None:
     clean_metrics, adv_metrics = MetricAccumulator(), MetricAccumulator()
     report = {}
 
-    print("\n=== ベンチマーク（攻撃テスト）開始 ===")
+    print("\n=== Benchmark attack test started ===")
     pbar = tqdm(test_loader, desc="Attacking")
     for batch_idx, (batch_x, batch_y) in enumerate(pbar):
         if args.max_batches and batch_idx >= args.max_batches: 
@@ -280,10 +280,8 @@ def main() -> None:
             w = attacker.attack(batch_x[i:i+1], y_hat_clean[i:i+1])
             adv_list.append(batch_x[i:i+1] * (1 + w))
         
-        # ⚠️ 超重要：detach() でメモリ爆発を防ぐ！
         batch_x_adv = torch.cat(adv_list, dim=0).detach()
         
-        # ⚠️ 超重要：no_grad() で囲んで計算履歴を保存させない！
         with torch.no_grad():
             report = observer.diagnose_divergence(batch_x, batch_x_adv)
             y_hat_adv = model(batch_x_adv)
@@ -307,7 +305,7 @@ def main() -> None:
         torch.cuda.empty_cache()
         gc.collect()
 
-    # 4. 結果保存と出力
+    # Step 4: save and print the results.
     summary = {
         "final/clean_mse": clean_metrics.mse(), "final/clean_mae": clean_metrics.mae(),
         "final/adv_mse": adv_metrics.mse(), "final/adv_mae": adv_metrics.mae(),
@@ -319,7 +317,7 @@ def main() -> None:
 
     if args.use_wandb:
         wandb.log(summary)
-        # L_inf や Norm_Ratio もすべて出力する完璧なテーブル
+        # Include layer diagnostics in the W&B table as well.
         obs_table = wandb.Table(columns=["Layer", "Divergence_MSE", "Cos_Dist", "Norm_Ratio", "L_inf"])
         for layer, metrics in report.items():
             obs_table.add_data(
