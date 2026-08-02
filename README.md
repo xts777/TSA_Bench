@@ -11,6 +11,7 @@ This repository is not just an attack implementation. It benchmarks both predict
 - Clean-vs-adversarial prediction evaluation on the original data scale
 - Hidden representation analysis via an Observer
 - Layer-wise divergence metrics for deeper diagnosis
+- Visual diagnostic plots for prediction comparisons and layer-wise Observer divergence
 - Optional Weights & Biases logging for batch-level and final summaries
 
 ## What This Benchmark Measures
@@ -98,12 +99,14 @@ src/main.py           Benchmark entry point
 src/data.py           Dataset loading and scaling
 src/model.py          Model wrapper loader
 src/attacker.py       Attack and Observer logic
+src/visualizer.py     Visualization module for time-series and Observer metrics
 src/train_baseline.py  Training script for baseline weights
 src/models/           Model implementations and wrappers
 src/layers/           Shared model building blocks
 sample_data/          Example NPY data files
 scratch/              Temporary experiment files
 weights/              Saved model weights created by training or linear probing
+results/plots/        Output directory for visual diagnostic plots
 wandb/                Local Weights & Biases run files
 ```
 
@@ -208,11 +211,25 @@ python src/main.py \
   --use_wandb
 ```
 
+### Visual Diagnostic Plots
+
+Add `--plot_results` to automatically generate and save high-resolution plots for time-series predictions (clean vs adversarial) and layer-wise Observer divergence metrics.
+
+```bash
+python src/main.py \
+  --data_path sample_data \
+  --model_name PatchTST \
+  --attack_method TSA \
+  --plot_results \
+  --plot_dir results/plots
+```
+
 ## Output Folders
 
 Runtime artifacts are written to these folders:
 
 - `weights/`: saved model weights produced by automatic training or linear probing
+- `results/plots/`: high-resolution PNG diagnostic plots produced when `--plot_results` is enabled
 - `wandb/`: local Weights & Biases run data when `--use_wandb` is enabled
 - `scratch/`: temporary files for experiments or verification scripts
 

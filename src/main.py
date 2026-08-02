@@ -277,6 +277,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--use_wandb", action="store_true", help="Enable WandB logging")
     parser.add_argument("--project_name", type=str, default="TSFM-Robustness")
     parser.add_argument("--llm_model", type=str, default="meta-llama/Llama-3.2-3B", help="HuggingFace model name for LLMTime")
+
+    # Visualization settings
+    parser.add_argument("--plot_results", action="store_true", help="Generate and save comparison plots for time-series and layer divergence")
+    parser.add_argument("--plot_dir", type=str, default="results/plots", help="Directory to save generated plot images")
     return parser
 
 def main() -> None:
@@ -421,6 +425,43 @@ def main() -> None:
     
     print("\n" + "="*30 + " SUMMARY " + "="*30)
     for k, v in summary.items(): print(f"{k}: {v:.6f}")
+
+    if args.plot_results:
+        try:
+            from visualizer import plot_time_series_comparison, plot_layer_wise_divergence
+        except ImportError:
+            import sys
+            sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+            from visualizer import plot_time_series_comparison, plot_layer_wise_divergence
+
+        print(f"\n📊 Generating evaluation plots in directory: {args.plot_dir}...")
+        os.makedirs(args.plot_dir, exist_ok=True)
+
+        # Plot time series comparison for the last processed sample
+        x_c_sample = batch_x[0].cpu().numpy()
+        x_a_sample = batch_x_adv[0].cpu().numpy()
+        y_t_sample = y_real[0].cpu().numpy()
+        y_c_sample = yc_real[0].cpu().numpy()
+        y_a_sample = ya_real[0].cpu().numpy()
+
+        plot_time_series_comparison(
+            x_clean=x_c_sample,
+            x_adv=x_a_sample,
+            y_true=y_t_sample,
+            y_clean=y_c_sample,
+            y_adv=y_a_sample,
+            channel_idx=0,
+            title=f"{args.model_name} - {args.attack_method} Attack & Prediction Comparison",
+            save_path=os.path.join(args.plot_dir, f"{args.model_name}_{args.attack_method}_ts_comparison.png")
+        )
+
+        # Plot layer-wise divergence diagnostic report
+        if report:
+            plot_layer_wise_divergence(
+                layer_metrics=report,
+                title=f"{args.model_name} - Layer-wise Observer Divergence ({args.attack_method})",
+                save_path=os.path.join(args.plot_dir, f"{args.model_name}_{args.attack_method}_layer_divergence.png")
+            )
 
     if args.use_wandb:
         wandb.log(summary)
