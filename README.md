@@ -109,13 +109,51 @@ wandb/                Local Weights & Biases run files
 
 ## Installation
 
-Install the required packages with:
+Clone the repository:
 
 ```bash
+git clone https://github.com/xts777/TSA_attack.git
+cd TSA_attack
+```
+
+Create a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Activate the environment.
+
+**Linux / macOS**
+
+```bash
+source .venv/bin/activate
+```
+
+**Windows (PowerShell)**
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+**Windows (Command Prompt)**
+
+```cmd
+.venv\Scripts\activate.bat
+```
+
+Install the required packages:
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-If you prefer Conda, create and activate your environment first, then install the same requirements.
+Verify the installation:
+
+```bash
+python src/main.py --help
+```
 
 ## Data Format
 
