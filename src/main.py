@@ -47,7 +47,7 @@ def set_seed(seed: int = 2024):
     torch.backends.cudnn.deterministic = False
     torch.backends.cudnn.benchmark = True
 
-def _auto_select_target_layers(model: nn.Module) -> List[str]:
+def _auto_select_target_layers(model: nn.Module, max_depth: Optional[int] = None) -> List[str]:
     # Some HuggingFace RMSNorm variants do not inherit from nn.LayerNorm, so we also check by class name.
     preferred_types = (nn.Linear, nn.Conv1d, nn.MultiheadAttention, nn.LayerNorm)
     llama_types = ("LlamaRMSNorm", "LlamaAttention", "LlamaMLP")
@@ -81,7 +81,22 @@ def _auto_select_target_layers(model: nn.Module) -> List[str]:
                 if name not in candidates:
                     candidates.append(name)
 
-    print(f"🔍 Automatically selected monitoring layers: {len(candidates)} layers")
+    # Filter by max_depth if specified (e.g. max_depth=2 allows high-level component names like 'encoder' and 'head.linear')
+    if max_depth is not None:
+        filtered = []
+        for layer in candidates:
+            clean_name = layer
+            if clean_name.startswith("model.model."):
+                clean_name = clean_name[len("model.model."):]
+            elif clean_name.startswith("model."):
+                clean_name = clean_name[len("model."):]
+            
+            relative_depth = clean_name.count('.') + 1
+            if relative_depth <= max_depth:
+                filtered.append(layer)
+        candidates = filtered
+
+    print(f"🔍 Automatically selected monitoring layers: {len(candidates)} layers (max_depth={max_depth})")
     return candidates
 
 
@@ -99,10 +114,10 @@ def _parse_target_layers(target_layers: Optional[str]) -> Optional[List[str]]:
     return parsed_layers
 
 
-def _resolve_target_layers(model: nn.Module, target_layers: Optional[str]) -> List[str]:
+def _resolve_target_layers(model: nn.Module, target_layers: Optional[str], max_depth: Optional[int] = None) -> List[str]:
     parsed_layers = _parse_target_layers(target_layers)
     if parsed_layers is None:
-        return _auto_select_target_layers(model)
+        return _auto_select_target_layers(model, max_depth=max_depth)
 
     available_layers = [name for name, _ in model.named_modules() if name]
     resolved_layers: List[str] = []
@@ -270,6 +285,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Comma-separated layer names to monitor. Use 'auto' or omit the argument to keep automatic selection.",
     )
     parser.add_argument(
+        "--max_depth",
+        type=int,
+        default=None,
+        help="Maximum depth of module hierarchy for automatic layer selection (e.g., 2 for high-level component monitoring).",
+    )
+    parser.add_argument(
         "--show_model_architecture",
         action="store_true",
         help="Print the unified model architecture and exit before running attacks.",
@@ -377,7 +398,7 @@ def main() -> None:
         if hasattr(model.model, '_init_llm'):
             model.model._init_llm()
 
-    observer = TSFMObserver(model, _resolve_target_layers(model, args.target_layers))
+    observer = TSFMObserver(model, _resolve_target_layers(model, args.target_layers, max_depth=args.max_depth))
     clean_metrics, adv_metrics = MetricAccumulator(), MetricAccumulator()
     report = {}
 
