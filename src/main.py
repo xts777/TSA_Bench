@@ -48,56 +48,54 @@ def set_seed(seed: int = 2024):
     torch.backends.cudnn.benchmark = True
 
 def _auto_select_target_layers(model: nn.Module, max_depth: Optional[int] = None) -> List[str]:
-    # Some HuggingFace RMSNorm variants do not inherit from nn.LayerNorm, so we also check by class name.
+    """
+    Automatically select key target layers for monitoring layer divergence.
+    Strictly respects max_depth when specified to isolate modules at the exact declared depth level.
+    """
     preferred_types = (nn.Linear, nn.Conv1d, nn.MultiheadAttention, nn.LayerNorm)
     llama_types = ("LlamaRMSNorm", "LlamaAttention", "LlamaMLP")
-    candidates = []
+    
+    raw_candidates = []
 
-    # Pass 1: collect all layers outside encoder blocks.
     for name, m in model.named_modules():
-        if ".encoder.block." not in name:
+        if not name:  # Skip top-level root model itself
+            continue
+
+        clean_name = name
+        if clean_name.startswith("model.model."):
+            clean_name = clean_name[len("model.model."):]
+        elif clean_name.startswith("model."):
+            clean_name = clean_name[len("model."):]
+
+        rel_depth = clean_name.count('.') + 1
+
+        # If max_depth is set, strictly restrict candidate selection to modules within max_depth
+        if max_depth is not None:
+            if rel_depth <= max_depth:
+                raw_candidates.append((name, rel_depth, m))
+        else:
+            # Default auto selection when max_depth is None
             if isinstance(m, preferred_types) or m.__class__.__name__ in llama_types:
-                if name not in candidates:
-                    candidates.append(name)
+                raw_candidates.append((name, rel_depth, m))
 
-    # Pass 2: add model-specific suffixes that we want to monitor.
-    must_watch_suffixes = [
-        "backbone", "head.flatten", "head.linear",  # For PatchTST
-        "encoder", "projection", "inner_attention", # For iTransformer
-        "final_layer_norm",                            # After all MOMENT blocks
-        "model.layers"                                 # For Llama / LLMTime
-    ]
-
-    # Extract attention, FFN, and block-output layers from the 24 MOMENT blocks.
-    for i in range(24):
-        must_watch_suffixes.append(f"block.{i}")                                 
-        must_watch_suffixes.append(f"block.{i}.layer.0.SelfAttention.o")         
-        must_watch_suffixes.append(f"block.{i}.layer.1.DenseReluDense.wo")       
-
-    # Pass 3: collect layers whose names match the selected suffixes.
-    for name, m in model.named_modules():
-        for suffix in must_watch_suffixes:
-            if name.endswith(suffix):
-                if name not in candidates:
-                    candidates.append(name)
-
-    # Filter by max_depth if specified (e.g. max_depth=2 allows high-level component names like 'encoder' and 'head.linear')
+    # If max_depth is specified, filter out parent containers whose children are also within depth <= max_depth
+    # so we monitor the actual deepest components at that declared depth tier.
+    candidate_names = [c[0] for c in raw_candidates]
+    
     if max_depth is not None:
-        filtered = []
-        for layer in candidates:
-            clean_name = layer
-            if clean_name.startswith("model.model."):
-                clean_name = clean_name[len("model.model."):]
-            elif clean_name.startswith("model."):
-                clean_name = clean_name[len("model."):]
-            
-            relative_depth = clean_name.count('.') + 1
-            if relative_depth <= max_depth:
-                filtered.append(layer)
-        candidates = filtered
+        # Keep non-overlapping modules up to max_depth
+        final_names = []
+        for name in candidate_names:
+            if not any(other.startswith(name + ".") for other in candidate_names):
+                final_names.append(name)
+        candidate_names = final_names
 
-    print(f"🔍 Automatically selected monitoring layers: {len(candidates)} layers (max_depth={max_depth})")
-    return candidates
+    # Order candidates by their actual forward appearance in model.named_modules()
+    all_module_names = [n for n, _ in model.named_modules()]
+    candidate_names = sorted(candidate_names, key=lambda n: all_module_names.index(n) if n in all_module_names else 9999)
+
+    print(f"🔍 Automatically selected monitoring layers: {len(candidate_names)} layers (strictly max_depth={max_depth})")
+    return candidate_names
 
 
 def _parse_target_layers(target_layers: Optional[str]) -> Optional[List[str]]:

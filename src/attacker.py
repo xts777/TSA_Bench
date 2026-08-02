@@ -297,32 +297,32 @@ class TSFMObserver:
             self.model(x_adv)
         adv_features = {k: v.clone() for k, v in self.activations.items()}
 
-        self.remove()
-
         divergence_report = {}
-        for layer in self.target_layers:
-            if layer in clean_features and layer in adv_features:
-                clean_tensor = clean_features[layer]
-                adv_tensor = adv_features[layer]
-                clean_flat = clean_tensor.flatten(start_dim=1)
-                adv_flat = adv_tensor.flatten(start_dim=1)
-                diff_flat = adv_flat - clean_flat
+        # Iterate in the exact chronological order of execution captured during forward pass
+        for layer in clean_features.keys():
+            if layer not in adv_features:
+                continue
+            clean_tensor = clean_features[layer]
+            adv_tensor = adv_features[layer]
+            clean_flat = clean_tensor.flatten(start_dim=1)
+            adv_flat = adv_tensor.flatten(start_dim=1)
+            diff_flat = adv_flat - clean_flat
 
-                mse_per_instance = diff_flat.pow(2).mean(dim=1)
-                cos_sim = F.cosine_similarity(clean_flat, adv_flat, dim=1)
+            mse_per_instance = diff_flat.pow(2).mean(dim=1)
+            cos_sim = F.cosine_similarity(clean_flat, adv_flat, dim=1)
 
-                clean_norm = clean_flat.norm(p=2, dim=1)
-                adv_norm = adv_flat.norm(p=2, dim=1)
-                norm_ratio = adv_norm / (clean_norm + 1e-8)
+            clean_norm = clean_flat.norm(p=2, dim=1)
+            adv_norm = adv_flat.norm(p=2, dim=1)
+            norm_ratio = adv_norm / (clean_norm + 1e-8)
 
-                l_inf = diff_flat.abs().max(dim=1).values
+            l_inf = diff_flat.abs().max(dim=1).values
 
-                divergence_report[layer] = {
-                    "mse": mse_per_instance.cpu().numpy(),
-                    "cos_dist": cos_sim.cpu().numpy(),
-                    "norm_ratio": norm_ratio.cpu().numpy(),
-                    "l_inf": l_inf.cpu().numpy()
-                }
+            divergence_report[layer] = {
+                "mse": mse_per_instance.cpu().numpy(),
+                "cos_dist": cos_sim.cpu().numpy(),
+                "norm_ratio": norm_ratio.cpu().numpy(),
+                "l_inf": l_inf.cpu().numpy()
+            }
 
         return divergence_report
 
