@@ -16,11 +16,11 @@ from torch import Tensor, nn
 import torch.optim as optim
 
 try:
-    from model import load_tsfm_wrapper
+    from model import load_tsfm_wrapper, SUPPORTED_MODELS
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from model import load_tsfm_wrapper
+    from model import load_tsfm_wrapper, SUPPORTED_MODELS
 
 @dataclass
 class MetricAccumulator:
@@ -255,8 +255,9 @@ def train_model(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="TSFM Robustness Benchmark with WandB")
-    parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--model_name", type=str, default="PatchTST")
+    parser.add_argument("--data_path", type=str, default=None, help="Path to data file/directory, or benchmark dataset name")
+    parser.add_argument("--dataset", type=str, default=None, help="Standard benchmark dataset name (e.g. ETTh1, ETTh2, ETTm1, ETTm2, Weather)")
+    parser.add_argument("--model_name", type=str, default="PatchTST", choices=list(SUPPORTED_MODELS.keys()))
     parser.add_argument("--attack_method", type=str, default="TSA", choices=["TSA", "GWN", "FGSM", "PGD"])
     parser.add_argument("--seq_len", type=int, default=96)
     parser.add_argument("--pred_len", type=int, default=48)
@@ -319,6 +320,9 @@ def main() -> None:
     if args.show_model_architecture and args.c_in is None:
         raise ValueError("--c_in is required when using --show_model_architecture.")
 
+    data_source = args.data_path if args.data_path is not None else (args.dataset if args.dataset is not None else "sample_data")
+    print(f"📊 Using dataset source: {data_source}")
+
     if args.show_model_architecture:
         c_in = int(args.c_in)
     else:
@@ -329,7 +333,7 @@ def main() -> None:
             sys.path.append(os.path.dirname(os.path.abspath(__file__)))
             from data import get_dataloader_and_scaler
 
-        test_loader, scaler = get_dataloader_and_scaler(args.data_path, args.seq_len, args.pred_len, args.batch_size, flag='test')
+        test_loader, scaler = get_dataloader_and_scaler(data_source, args.seq_len, args.pred_len, args.batch_size, flag='test')
         c_in = int(np.asarray(scaler.mean).shape[0]) if np.asarray(scaler.mean).ndim > 0 else 1
     
     # Step 1: load the model.
@@ -371,15 +375,15 @@ def main() -> None:
         print(f"ℹ️ {args.model_name} is a zero-shot forecasting model, so training is skipped.")
     elif is_moment:
         print(f"⚠️ {args.model_name} is pretrained, but its prediction head is untrained. Starting automatic head-only training.")
-        model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=True, use_wandb=args.use_wandb)
+        model = train_model(model, data_source, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=True, use_wandb=args.use_wandb)
         os.makedirs("./weights", exist_ok=True)
-        dataset_name = os.path.basename(args.data_path).split('.')[0]
+        dataset_name = os.path.basename(data_source).split('.')[0]
         torch.save(model.model.state_dict(), f"./weights/{args.model_name}_{dataset_name}_head.pth")
     else:
         print(f"⚠️ No pretrained weights were found for {args.model_name}. Starting automatic training from scratch.")
-        model = train_model(model, args.data_path, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=False, use_wandb=args.use_wandb)
+        model = train_model(model, data_source, args.seq_len, args.pred_len, args.train_batch_size, args.train_epochs, args.learning_rate, device, is_moment=False, use_wandb=args.use_wandb)
         os.makedirs("./weights", exist_ok=True)
-        dataset_name = os.path.basename(args.data_path).split('.')[0]
+        dataset_name = os.path.basename(data_source).split('.')[0]
         if args.memo:
             torch.save(model.model.state_dict(), f"./weights/{args.model_name}_{dataset_name}_{args.memo}.pth")
         else:

@@ -1,9 +1,80 @@
 import os
 import glob
+import urllib.request
 import torch
 import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
+
+# ==========================================
+# Standard Benchmark Datasets Registry
+# ==========================================
+DATASET_URLS = {
+    "ETTh1": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTh1.csv",
+        "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTh1.csv"
+    ],
+    "ETTh2": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTh2.csv",
+        "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTh2.csv"
+    ],
+    "ETTm1": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTm1.csv",
+        "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTm1.csv"
+    ],
+    "ETTm2": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/ETT-small/ETTm2.csv",
+        "https://raw.githubusercontent.com/thuml/Time-Series-Library/main/dataset/ETT-small/ETTm2.csv"
+    ],
+    "Weather": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/weather/weather.csv"
+    ],
+    "Electricity": [
+        "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETDataset-main/electricity/electricity.csv"
+    ]
+}
+
+def download_dataset_if_needed(dataset_name_or_path: str, save_dir: str = "data") -> str:
+    """
+    Check if the input matches a standard dataset name (e.g., 'ETTh1').
+    If so, download it to save_dir if not already cached locally, and return the local path.
+    Otherwise, return dataset_name_or_path unchanged.
+    """
+    name_lower = dataset_name_or_path.strip().lower()
+    matched_key = None
+    for k in DATASET_URLS:
+        if k.lower() == name_lower:
+            matched_key = k
+            break
+
+    if matched_key is None:
+        return dataset_name_or_path  # User provided a custom file/folder path
+
+    os.makedirs(save_dir, exist_ok=True)
+    target_path = os.path.join(save_dir, f"{matched_key}.csv")
+
+    if not os.path.exists(target_path):
+        urls = DATASET_URLS[matched_key]
+        if isinstance(urls, str):
+            urls = [urls]
+
+        download_success = False
+        for url in urls:
+            print(f"📥 Downloading standard benchmark dataset '{matched_key}' from {url}...")
+            try:
+                urllib.request.urlretrieve(url, target_path)
+                print(f"✅ Successfully downloaded '{matched_key}' to {target_path}")
+                download_success = True
+                break
+            except Exception as e:
+                print(f"⚠️ Mirror failed ({url}): {e}. Trying next fallback mirror...")
+
+        if not download_success:
+            raise RuntimeError(f"Failed to download benchmark dataset '{matched_key}' from all available mirrors.")
+    else:
+        print(f"📂 Found cached benchmark dataset '{matched_key}' at: {target_path}")
+
+    return target_path
 
 # ==========================================
 # 1. Data standardizer
@@ -57,7 +128,7 @@ class TSDataset(Dataset):
 
         for i, data in enumerate(data_list):
             length = len(data)
-            num_train = int(length * 0.6)
+            num_train = int(length * 0.7)
             num_test = int(length * 0.2)
             num_vali = length - num_train - num_test
 
@@ -96,20 +167,25 @@ class TSDataset(Dataset):
 # ==========================================
 def get_dataloader_and_scaler(data_path, seq_len=96, pred_len=48, batch_size=32, flag='test'):
     """
-    Read file or folder data, standardize it, and return a DataLoader for the selected split (train/val/test).
+    Read file, folder, or standard benchmark dataset name (e.g. 'ETTh1'), standardize it,
+    and return a DataLoader for the selected split (train/val/test).
     """
+    # Resolve standard dataset name to local path if applicable
+    resolved_path = download_dataset_if_needed(data_path)
+
     raw_data_list = []
 
-    if os.path.isfile(data_path):
+    if os.path.isfile(resolved_path):
         # Single file (for example, ETTh1.csv).
-        if data_path.endswith('.csv'):
-            df = pd.read_csv(data_path)
-            data = df.select_dtypes(include=[np.number]).values
+        if resolved_path.endswith('.csv'):
+            df = pd.read_csv(resolved_path)
+            # Exclude timestamp/date column if present (e.g. 'date')
+            numeric_df = df.select_dtypes(include=[np.number])
+            data = numeric_df.values
             raw_data_list.append(data)
-    elif os.path.isdir(data_path):
+    elif os.path.isdir(resolved_path):
         # Directory input (for example, UTSD-full-npy)
-        # Search for all .npy files and load them in numeric order (0.npy, 1.npy, ...)
-        files = glob.glob(os.path.join(data_path, "**/*.npy"), recursive=True)
+        files = glob.glob(os.path.join(resolved_path, "**/*.npy"), recursive=True)
         
         def sort_key(f):
             name = os.path.basename(f).split('.')[0]
@@ -119,22 +195,20 @@ def get_dataloader_and_scaler(data_path, seq_len=96, pred_len=48, batch_size=32,
         for fp in files:
             data = np.load(fp)
             if data.ndim == 1:
-                data = data.reshape(-1, 1)  # Convert 1D arrays to 2D (L, 1)
+                data = data.reshape(-1, 1)
             raw_data_list.append(data)
     
     if not raw_data_list:
-        raise ValueError(f"No data found: {data_path}")
-
+        raise ValueError(f"No valid time series data found at: {data_path} (resolved: {resolved_path})")
 
     scaler = StandardScaler()
     train_chunks = []
     for data in raw_data_list:
-        train_len = int(len(data) * 0.6)
+        train_len = int(len(data) * 0.7)
         train_chunks.append(data[:train_len])
         
     scaler.fit(train_chunks)
     scaled_data_list = scaler.transform(raw_data_list)
-
 
     dataset = TSDataset(scaled_data_list, seq_len, pred_len, flag=flag)
     

@@ -530,3 +530,10 @@ def load_tsfm_wrapper(model_name: str, seq_len: int, pred_len: int, c_in: int, c
         return LLMTimeWrapper(seq_len=seq_len, pred_len=pred_len, c_in=c_in)
 
     raise ValueError(f"Unsupported TSFM model name: {model_name}")
+
+SUPPORTED_MODELS = {
+    "PatchTST": PatchTSTWrapper,
+    "iTransformer": iTransformerWrapper,
+    "MOMENT": MOMENTWrapper,
+    "LLMTime": LLMTimeWrapper,
+}
