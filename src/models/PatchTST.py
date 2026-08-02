@@ -91,33 +91,3 @@ class Model(nn.Module):
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
         return x
 
-if __name__ == "__main__":
-    import argparse
-
-    # 1. PyTorchを騙すための「ダミー設定」をでっち上げる
-    configs = argparse.Namespace(
-        enc_in=7,           # チャネル数 (ETTh1など)
-        seq_len=96,         # 入力長
-        pred_len=48,        # 予測長
-        e_layers=3,         # エンコーダの層数
-        n_heads=16,         # アテンションのヘッド数
-        d_model=128,        # モデルの次元数
-        d_ff=256,           # FFNの次元数
-        dropout=0.1, fc_dropout=0.1, head_dropout=0.1,
-        individual=False, 
-        patch_len=16, stride=8, padding_patch='end',
-        revin=True, affine=True, subtract_last=False, 
-        decomposition=False, kernel_size=25
-    )
-
-    # 2. ダミー設定でモデルを初期化（これで怒られません！）
-    model = Model(configs)
-
-    # 3. named_modules() で層の名前とクラスを綺麗にプリント
-    print("=== PatchTST の内部構造 (named_modules) ===")
-    for name, module in model.named_modules():
-        # nameが空文字列（モデルのルートそのもの）はスキップ
-        if name:
-            # 階層の深さに合わせてインデントをつけて見やすくする
-            indent = "  " * name.count(".")
-            print(f"{indent}- {name} : {module.__class__.__name__}")

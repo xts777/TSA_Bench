@@ -57,6 +57,37 @@ The current wrapper layer supports these TSFM families:
 | TSA | Time-series adversarial attack |
 | GWN | Gaussian white-noise attack |
 
+## Target Layers
+
+By default, the benchmark auto-selects monitoring layers from the loaded model.
+
+If you want to monitor specific layers, pass them with `--target_layers` as a comma-separated list. Use `--show_model_architecture` in `src/main.py` to print the unified model structure first, then choose the exact layer names from that output.
+
+You can also inspect the unified architecture directly from `src/main.py` with `--show_model_architecture` before choosing layers.
+
+`--c_in` means the number of input channels, so it is the feature count of the time series. For example, a single-variable series uses `1`, and a multivariate series with 7 features uses `7`. The benchmark normally infers this from the dataset, but architecture-only inspection skips data loading, so `--c_in` must be provided in that mode.
+
+Example:
+
+```bash
+python src/main.py \
+  --data_path sample_data \
+  --model_name PatchTST \
+  --attack_method TSA \
+  --c_in 7 \
+  --show_model_architecture
+```
+
+After you choose the layer names, run:
+
+```bash
+python src/main.py \
+  --data_path sample_data \
+  --model_name PatchTST \
+  --attack_method TSA \
+  --target_layers model.backbone.encoder.layers.0.self_attn,model.backbone.encoder.layers.0.ff,model.head.linear
+```
+
 ## Repository Layout
 
 ```text

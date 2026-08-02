@@ -10,25 +10,16 @@ import gc
 import random
 
 import numpy as np
-import pandas as pd
 import torch
 from torch import Tensor, nn
 import torch.optim as optim
 
-from tqdm import tqdm
-
-import wandb
-
 try:
-    from data import get_dataloader_and_scaler
     from model import load_tsfm_wrapper
-    from attacker import GWNAttacker, TSAttacker, TSFMObserver
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from data import get_dataloader_and_scaler
     from model import load_tsfm_wrapper
-    from attacker import GWNAttacker, TSAttacker, TSFMObserver
 
 @dataclass
 class MetricAccumulator:
@@ -94,6 +85,49 @@ def _auto_select_target_layers(model: nn.Module) -> List[str]:
     return candidates
 
 
+def _parse_target_layers(target_layers: Optional[str]) -> Optional[List[str]]:
+    if target_layers is None:
+        return None
+
+    value = target_layers.strip()
+    if not value or value.lower() == "auto":
+        return None
+
+    parsed_layers = [layer.strip() for layer in value.split(",") if layer.strip()]
+    if not parsed_layers:
+        return None
+    return parsed_layers
+
+
+def _resolve_target_layers(model: nn.Module, target_layers: Optional[str]) -> List[str]:
+    parsed_layers = _parse_target_layers(target_layers)
+    if parsed_layers is None:
+        return _auto_select_target_layers(model)
+
+    available_layers = {name for name, _ in model.named_modules() if name}
+    missing_layers = [layer for layer in parsed_layers if layer not in available_layers]
+    if missing_layers:
+        available_preview = sorted(available_layers)
+        preview_text = ", ".join(available_preview[:30])
+        raise ValueError(
+            "Unknown target layer(s): "
+            + ", ".join(missing_layers)
+            + f"\nAvailable layer names include: {preview_text}"
+        )
+
+    print(f"🎯 Using manually selected monitoring layers: {len(parsed_layers)} layers")
+    return parsed_layers
+
+
+def _print_model_architecture(model: nn.Module) -> None:
+    target_model = getattr(model, "model", model)
+    print(f"=== {target_model.__class__.__name__} architecture (named_modules) ===")
+    for name, module in target_model.named_modules():
+        if name:
+            indent = "  " * name.count(".")
+            print(f"{indent}- {name} : {module.__class__.__name__}")
+
+
 def train_model(
         wrapper: nn.Module,
         data_path: str,
@@ -123,6 +157,17 @@ def train_model(
     Returns:
             nn.Module: Trained model.
     """
+    try:
+        from data import get_dataloader_and_scaler
+    except ImportError:
+        import sys
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from data import get_dataloader_and_scaler
+
+    from tqdm import tqdm
+    if use_wandb:
+        import wandb
+
     print(f"\n🚀 [Auto-Train] Loading training data ({data_path})...")
     train_loader, _ = get_dataloader_and_scaler(data_path, seq_len, pred_len, batch_size, flag='train')
 
@@ -187,6 +232,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tau", type=int, default=9)
     parser.add_argument("--epsilon", type=float, default=0.1)
     parser.add_argument("--max_batches", type=int, default=0)
+    parser.add_argument(
+        "--c_in",
+        type=int,
+        default=None,
+        help="Number of input channels/features. Required for architecture inspection mode.",
+    )
     
     # Auto-training and seed settings
     parser.add_argument("--checkpoint_path", type=str, default=None, help="Path to pre-trained weights")
@@ -195,6 +246,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--memo", type=str, default=None)
+    parser.add_argument(
+        "--target_layers",
+        type=str,
+        default=None,
+        help="Comma-separated layer names to monitor. Use 'auto' or omit the argument to keep automatic selection.",
+    )
+    parser.add_argument(
+        "--show_model_architecture",
+        action="store_true",
+        help="Print the unified model architecture and exit before running attacks.",
+    )
 
     # WandB settings
     parser.add_argument("--use_wandb", action="store_true", help="Enable WandB logging")
@@ -210,20 +272,49 @@ def main() -> None:
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if args.use_wandb:
-        wandb.init(
-            project=args.project_name,
-            config=vars(args),
-            name=f"{args.model_name}_{args.attack_method}_{time.strftime('%m%d-%H%M')}"
-        )
+    if args.show_model_architecture and args.c_in is None:
+        raise ValueError("--c_in is required when using --show_model_architecture.")
 
-    test_loader, scaler = get_dataloader_and_scaler(args.data_path, args.seq_len, args.pred_len, args.batch_size, flag='test')
-    c_in = int(np.asarray(scaler.mean).shape[0]) if np.asarray(scaler.mean).ndim > 0 else 1
+    if args.show_model_architecture:
+        c_in = int(args.c_in)
+    else:
+        try:
+            from data import get_dataloader_and_scaler
+        except ImportError:
+            import sys
+            sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+            from data import get_dataloader_and_scaler
+
+        test_loader, scaler = get_dataloader_and_scaler(args.data_path, args.seq_len, args.pred_len, args.batch_size, flag='test')
+        c_in = int(np.asarray(scaler.mean).shape[0]) if np.asarray(scaler.mean).ndim > 0 else 1
     
     # Step 1: load the model.
     model = load_tsfm_wrapper(args.model_name, args.seq_len, args.pred_len, c_in, checkpoint_path=args.checkpoint_path).to(device)
     if hasattr(model.model, 'model_name') and args.llm_model:
         model.model.model_name = args.llm_model
+
+    if args.show_model_architecture:
+        _print_model_architecture(model)
+        return
+
+    try:
+        from data import get_dataloader_and_scaler
+        from attacker import GWNAttacker, TSAttacker, TSFMObserver
+    except ImportError:
+        import sys
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from data import get_dataloader_and_scaler
+        from attacker import GWNAttacker, TSAttacker, TSFMObserver
+
+    from tqdm import tqdm
+
+    if args.use_wandb:
+        import wandb
+        wandb.init(
+            project=args.project_name,
+            config=vars(args),
+            name=f"{args.model_name}_{args.attack_method}_{time.strftime('%m%d-%H%M')}"
+        )
     
     # Step 2: decide whether to auto-train, including MOMENT linear probing.
     is_moment = args.model_name.lower().startswith("moment")
@@ -261,7 +352,7 @@ def main() -> None:
         if hasattr(model.model, '_init_llm'):
             model.model._init_llm()
 
-    observer = TSFMObserver(model, _auto_select_target_layers(model))
+    observer = TSFMObserver(model, _resolve_target_layers(model, args.target_layers))
     clean_metrics, adv_metrics = MetricAccumulator(), MetricAccumulator()
     report = {}
 

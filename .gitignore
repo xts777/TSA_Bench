@@ -8,4 +8,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-scratch/
+scratch/
+.ipynb_checkpoints/

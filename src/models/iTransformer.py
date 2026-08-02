@@ -131,35 +131,3 @@ class Model(nn.Module):
             return dec_out  # [B, N]
         return None
 
-if __name__ == "__main__":
-    import argparse
-
-    # 1. PyTorchを騙すための「ダミー設定」をでっち上げる (iTransformer用)
-    configs = argparse.Namespace(
-        task_name='long_term_forecast', # iTransformerはタスク名で構造が変わります
-        seq_len=96,         # 入力長
-        pred_len=48,        # 予測長
-        enc_in=7,           # 入力チャネル数
-        d_model=512,        # モデルの次元数 (PatchTSTより大きめが標準)
-        n_heads=8,          # アテンションのヘッド数
-        e_layers=2,         # エンコーダの層数
-        d_ff=2048,          # FFNの次元数
-        factor=1,           # Attentionのfactor
-        dropout=0.1,        # ドロップアウト率
-        embed='timeF',      # 埋め込み手法
-        freq='h',           # 時間単位
-        activation='gelu',  # 活性化関数
-        num_class=2         # classification時のクラス数（今回は使わないがエラー回避のため）
-    )
-
-    # 2. ダミー設定でモデルを初期化（これで怒られません！）
-    model = Model(configs)
-
-    # 3. named_modules() で層の名前とクラスを綺麗にプリント
-    print("=== iTransformer の内部構造 (named_modules) ===")
-    for name, module in model.named_modules():
-        # nameが空文字列（モデルのルートそのもの）はスキップ
-        if name:
-            # 階層の深さに合わせてインデントをつけて見やすくする
-            indent = "  " * name.count(".")
-            print(f"{indent}- {name} : {module.__class__.__name__}")
