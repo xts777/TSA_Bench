@@ -54,7 +54,7 @@ The benchmark currently supports the following Time Series Foundation Models.
 
 | Attack | Notes |
 | --- | --- |
-| TSA | Temporally Sparse Attack |
+| TSA | [📄](https://openreview.net/pdf?id=oL806RzbDi) |
 | GWN | Gaussian white-noise attack |
 
 ## Target Layers
