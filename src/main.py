@@ -396,9 +396,10 @@ def main() -> None:
         clean_metrics.update(yc_real, y_real)
         adv_metrics.update(ya_real, y_real)
 
+        clean_mse_val = (yc_real - y_real).pow(2).mean().item()
+        adv_mse_val = (ya_real - y_real).pow(2).mean().item()
+
         if args.use_wandb:
-            clean_mse_val = (yc_real - y_real).pow(2).mean().item()
-            adv_mse_val = (ya_real - y_real).pow(2).mean().item()
             wandb.log({
                 "batch/clean_mse": clean_mse_val,
                 "batch/adv_mse": adv_mse_val,
