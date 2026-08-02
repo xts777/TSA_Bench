@@ -104,19 +104,34 @@ def _resolve_target_layers(model: nn.Module, target_layers: Optional[str]) -> Li
     if parsed_layers is None:
         return _auto_select_target_layers(model)
 
-    available_layers = {name for name, _ in model.named_modules() if name}
-    missing_layers = [layer for layer in parsed_layers if layer not in available_layers]
-    if missing_layers:
-        available_preview = sorted(available_layers)
-        preview_text = ", ".join(available_preview[:30])
+    available_layers = [name for name, _ in model.named_modules() if name]
+    resolved_layers: List[str] = []
+    unresolved_layers: List[str] = []
+
+    for requested_layer in parsed_layers:
+        exact_matches = [name for name in available_layers if name == requested_layer]
+        suffix_matches = [name for name in available_layers if name.endswith(f".{requested_layer}") or name.endswith(requested_layer)]
+
+        matches = exact_matches or suffix_matches
+        if len(matches) == 1:
+            resolved_layers.append(matches[0])
+        elif len(matches) > 1:
+            unresolved_layers.append(
+                f"{requested_layer} (ambiguous: {', '.join(matches[:5])})"
+            )
+        else:
+            unresolved_layers.append(requested_layer)
+
+    if unresolved_layers:
+        available_preview = ", ".join(available_layers[:30])
         raise ValueError(
             "Unknown target layer(s): "
-            + ", ".join(missing_layers)
-            + f"\nAvailable layer names include: {preview_text}"
+            + ", ".join(unresolved_layers)
+            + f"\nAvailable layer names include: {available_preview}"
         )
 
-    print(f"🎯 Using manually selected monitoring layers: {len(parsed_layers)} layers")
-    return parsed_layers
+    print(f"🎯 Using manually selected monitoring layers: {len(resolved_layers)} layers")
+    return resolved_layers
 
 
 def _print_model_architecture(model: nn.Module) -> None:
