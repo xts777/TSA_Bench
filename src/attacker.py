@@ -177,9 +177,9 @@ class TSFMObserver:
             elif hasattr(output, "last_hidden_state"):
                 val = output.last_hidden_state
             else:
-                return  # 未知の型はエラーを防ぐために無視する
+                return  # Ignore unknown output types to prevent errors.
 
-            # 確実に取り出したものがテンソルであることを確認して保存
+            # Save the value only if it is confirmed to be a tensor.
             if isinstance(val, torch.Tensor):
                 self.activations[layer_name] = val.detach().clone()
                 
@@ -262,55 +262,55 @@ if __name__ == "__main__":
     target_model = MockTSFM()
     criterion = nn.MSELoss()
     
-    # 取一条 B=1 的测试数据 (Length=96, Feature=3)
+    # Sample one B=1 test example (Length=96, Feature=3).
     batch_x_clean = torch.randn(1, 96, 3) 
     
-    # 2. 准备想要监听的模型层名称
+    # 2. Prepare the model layer names to monitor.
     layers_to_watch = ['patching_layer', 'attn_layer_1', 'attn_layer_2']
     observer = TSFMObserver(target_model, layers_to_watch)
 
-    # 3. 实例化攻击器多态武器库
+    # 3. Instantiate the attack methods.
     attackers = [
         GWNAttacker(model=target_model, loss_fn=criterion, scale=0.05),
         TSAttacker(model=target_model, loss_fn=criterion, tau=9, epsilon=0.1, max_iter=5, is_channel_independent=False)
     ]
 
-    # 4. 运行 Benchmark
-    print("=== 开始 TSFM 组件级鲁棒性诊断测试 ===")
+    # 4. Run the benchmark.
+    print("=== Starting TSFM component-level robustness diagnostic test ===")
     with torch.no_grad():
         y_hat_clean = target_model(batch_x_clean)
 
     for attacker in attackers:
-        print(f"\n>> 正在执行攻击: {attacker.__class__.__name__}")
+        print(f"\n>> Running attack: {attacker.__class__.__name__}")
         
-        # 多态接口生成对抗扰动
+        # Generate adversarial perturbations through the polymorphic interface.
         perturbation = attacker.attack(batch_x_clean, y_hat_clean)
         batch_x_adv = batch_x_clean * (1 + perturbation)
         
-        # 呼叫探针生成误差传播报告
+        # Call the observer to generate the divergence report.
         report = observer.diagnose_divergence(batch_x_clean, batch_x_adv)
         
-        print("--- 组件级特征偏移量 (MSE) ---")
+        print("--- Component-level feature shift (MSE) ---")
         prev_mse = 0
         for i, (layer_name, metrics_dict) in enumerate(report.items()):
-            # 辞書からそれぞれの配列を取り出す
+            # Extract the arrays from the dictionary.
             mse_array = metrics_dict["mse"]
             cos_dist_array = metrics_dict["cos_dist"]
             
-            mean_mse = np.mean(mse_array) # 提取平均偏移量
-            mean_cos = np.mean(cos_dist_array) # コサイン距離も計算できる！
+            mean_mse = np.mean(mse_array)  # Compute the average shift.
+            mean_cos = np.mean(cos_dist_array)  # Cosine distance is also available.
             
-            # 差异分析：判断该层是"防御层"还是"冗余层"
+            # Differential analysis: determine whether the layer is a protective or redundant layer.
             delta = mean_mse - prev_mse
             status = ""
             if i > 0:
                 if delta < 0:
-                    status = "✅ 误差衰减 (可能起到了鲁棒性缓冲作用)"
+                    status = "✅ Error decays (it may act as a robustness buffer)"
                 elif abs(delta) < 1e-5:
-                    status = "⚠️ 误差不变 (可能是可以裁剪的冗余层)"
+                    status = "⚠️ Error stays flat (it may be a removable redundant layer)"
                 else:
-                    status = "❌ 误差放大 (模型的脆弱点)"
+                    status = "❌ Error amplifies (a model weakness)"
             
-            # 出力に Cosine Distance も追加するとさらに論文っぽくなります
+            # Adding Cosine Distance makes the output look more paper-like.
             print(f"[{layer_name}] MSE: {mean_mse:.6f} | CosDist: {mean_cos:.6f} {status}")
             prev_mse = mean_mse
