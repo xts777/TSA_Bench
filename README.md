@@ -54,7 +54,7 @@ The current wrapper layer supports these TSFM families:
 
 | Attack | Notes |
 | --- | --- |
-| TSA | Time-series adversarial attack |
+| TSA | Temporally Sparse Attack |
 | GWN | Gaussian white-noise attack |
 
 ## Target Layers
