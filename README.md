@@ -41,14 +41,14 @@ It loads the test dataset and fitted scaler, builds a forecasting model through 
 
 ## Supported Models
 
-The current wrapper layer supports these TSFM families:
+The benchmark currently supports the following Time Series Foundation Models.
 
-| Model | Notes |
-| --- | --- |
-| PatchTST | Channel-independent forecasting wrapper |
-| iTransformer | Channel-mixing forecasting wrapper |
-| MOMENT | Foundation-model wrapper with automatic linear probing when needed |
-| LLMTime | Zero-shot forecasting wrapper |
+| Model | Paper | Code |
+|-------|:-----:|:----:|
+| PatchTST | [📄](https://arxiv.org/abs/2211.14730) | [💻](https://github.com/yuqinie98/PatchTST) |
+| iTransformer | [📄](https://arxiv.org/abs/2310.06625) | [💻](https://github.com/thuml/iTransformer) |
+| MOMENT | [📄](https://arxiv.org/abs/2402.03885) | [💻](https://github.com/moment-timeseries-foundation-model/moment) |
+| LLMTime | [📄](https://arxiv.org/abs/2310.07820) | [💻](https://github.com/ngruver/llmtime) |
 
 ## Supported Attacks
 
