@@ -240,12 +240,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="TSFM Robustness Benchmark with WandB")
     parser.add_argument("--data_path", type=str, required=True)
     parser.add_argument("--model_name", type=str, default="PatchTST")
-    parser.add_argument("--attack_method", type=str, default="TSA", choices=["TSA", "GWN"])
+    parser.add_argument("--attack_method", type=str, default="TSA", choices=["TSA", "GWN", "FGSM", "PGD"])
     parser.add_argument("--seq_len", type=int, default=96)
     parser.add_argument("--pred_len", type=int, default=48)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--tau", type=int, default=9)
     parser.add_argument("--epsilon", type=float, default=0.1)
+    parser.add_argument("--pgd_alpha", type=float, default=0.02, help="Step size for PGD attack")
+    parser.add_argument("--pgd_steps", type=int, default=10, help="Number of iterations for PGD attack")
     parser.add_argument("--max_batches", type=int, default=0)
     parser.add_argument(
         "--c_in",
@@ -318,12 +320,12 @@ def main() -> None:
 
     try:
         from data import get_dataloader_and_scaler
-        from attacker import GWNAttacker, TSAttacker, TSFMObserver
+        from attacker import GWNAttacker, TSAttacker, FGSMAttacker, PGDAttacker, TSFMObserver
     except ImportError:
         import sys
         sys.path.append(os.path.dirname(os.path.abspath(__file__)))
         from data import get_dataloader_and_scaler
-        from attacker import GWNAttacker, TSAttacker, TSFMObserver
+        from attacker import GWNAttacker, TSAttacker, FGSMAttacker, PGDAttacker, TSFMObserver
 
     from tqdm import tqdm
 
@@ -364,6 +366,10 @@ def main() -> None:
     loss_fn = nn.MSELoss()
     if args.attack_method == "GWN":
         attacker = GWNAttacker(model, loss_fn)
+    elif args.attack_method == "FGSM":
+        attacker = FGSMAttacker(model, loss_fn, epsilon=args.epsilon)
+    elif args.attack_method == "PGD":
+        attacker = PGDAttacker(model, loss_fn, epsilon=args.epsilon, alpha=args.pgd_alpha, steps=args.pgd_steps)
     else:
         attacker = TSAttacker(model, loss_fn, args.tau, args.epsilon, 5, model.is_channel_independent)
 

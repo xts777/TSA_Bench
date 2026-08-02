@@ -53,10 +53,12 @@ The current wrapper layer supports these TSFM families:
 
 ## Supported Attacks
 
-| Attack | Notes |
-| --- | --- |
-| TSA | Time-series adversarial attack |
-| GWN | Gaussian white-noise attack |
+| Attack | Type | Notes |
+| --- | --- | --- |
+| TSA | Black-box | Time-series adversarial attack using 0th-order gradient estimation |
+| GWN | Baseline | Gaussian white-noise attack baseline |
+| FGSM | White-box | Fast Gradient Sign Method single-step gradient attack |
+| PGD | White-box | Projected Gradient Descent iterative $L_\infty$ gradient attack |
 
 ## Target Layers
 
@@ -197,6 +199,19 @@ python src/main.py \
   --seq_len 96 \
   --pred_len 48 \
   --batch_size 32
+```
+
+### PGD White-box attack
+
+```bash
+python src/main.py \
+  --data_path sample_data \
+  --model_name PatchTST \
+  --attack_method PGD \
+  --epsilon 0.2 \
+  --pgd_steps 10 \
+  --pgd_alpha 0.02 \
+  --plot_results
 ```
 
 ### Optional WandB logging

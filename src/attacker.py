@@ -41,6 +41,90 @@ class GWNAttacker(BaseAttacker):
         self._validate_input(x)
         w = torch.randn_like(x) * self.scale
         return w
+
+class FGSMAttacker(BaseAttacker):
+    """
+    Fast Gradient Sign Method (FGSM) for Time Series.
+    White-box single-step gradient attack.
+    """
+    def __init__(self, model, loss_fn, epsilon=0.1):
+        super().__init__(model, loss_fn)
+        self.epsilon = epsilon
+
+    def attack(self, x, y_hat=None):
+        self._validate_input(x)
+        
+        # Add infinitesimal noise to break exact equality (pred == y_hat) when evaluating clean input
+        x_init = x.clone().detach()
+        x_req = (x_init + 1e-4 * torch.randn_like(x_init)).requires_grad_(True)
+        pred = self.model(x_req)
+        
+        target = y_hat if y_hat is not None else pred.detach()
+        loss = self.loss_fn(pred, target)
+        
+        self.model.zero_grad()
+        loss.backward()
+        
+        grad = x_req.grad.data
+        grad_sign = torch.sign(grad)
+        
+        # Handle exact zero gradient elements
+        zero_mask = (grad_sign == 0)
+        if zero_mask.any():
+            grad_sign[zero_mask] = torch.sign(torch.randn_like(grad[zero_mask]))
+            # If sign is still 0 (rare), set to +1
+            grad_sign[grad_sign == 0] = 1.0
+        
+        delta = self.epsilon * grad_sign
+        
+        # Convert absolute delta to relative perturbation matrix w so x * (1 + w) == x + delta
+        w = torch.where(x.abs() > 1e-6, delta / x, torch.zeros_like(x))
+        return w.detach()
+
+class PGDAttacker(BaseAttacker):
+    """
+    Projected Gradient Descent (PGD) for Time Series.
+    Iterative white-box attack with L_inf norm constraint.
+    """
+    def __init__(self, model, loss_fn, epsilon=0.1, alpha=0.02, steps=10, random_start=True):
+        super().__init__(model, loss_fn)
+        self.epsilon = epsilon
+        self.alpha = alpha
+        self.steps = steps
+        self.random_start = random_start
+
+    def attack(self, x, y_hat=None):
+        self._validate_input(x)
+        
+        if self.random_start:
+            delta = torch.empty_like(x).uniform_(-self.epsilon, self.epsilon)
+        else:
+            delta = torch.zeros_like(x)
+            
+        delta.requires_grad_(True)
+        
+        for _ in range(self.steps):
+            x_adv = x + delta
+            pred = self.model(x_adv)
+            
+            target = y_hat if y_hat is not None else pred.detach()
+            loss = self.loss_fn(pred, target)
+            
+            if delta.grad is not None:
+                delta.grad.zero_()
+            loss.backward()
+            
+            with torch.no_grad():
+                grad = delta.grad.data
+                delta.data = delta.data + self.alpha * torch.sign(grad)
+                # Project back into the L_inf epsilon ball
+                delta.data = torch.clamp(delta.data, -self.epsilon, self.epsilon)
+            
+            delta.requires_grad_(True)
+            
+        delta_final = delta.detach()
+        w = torch.where(x.abs() > 1e-6, delta_final / x, torch.zeros_like(x))
+        return w.detach()
     
 class TSAttacker(BaseAttacker):
     """
