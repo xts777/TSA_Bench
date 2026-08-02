@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import gc
 import random
+import re
 
 import numpy as np
 import torch
@@ -67,7 +68,10 @@ def _auto_select_target_layers(model: nn.Module, max_depth: Optional[int] = None
         elif clean_name.startswith("model."):
             clean_name = clean_name[len("model."):]
 
-        rel_depth = clean_name.count('.') + 1
+        # Strip numerical list indices (e.g. '.0', '.1') so ModuleList blocks (e.g. encoder.block.0) 
+        # are counted at their structural parent level depth
+        clean_name_no_idx = re.sub(r'\.\d+', '', clean_name)
+        rel_depth = clean_name_no_idx.count('.') + 1
 
         # If max_depth is set, strictly restrict candidate selection to modules within max_depth
         if max_depth is not None:
